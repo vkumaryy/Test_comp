@@ -1,0 +1,5 @@
+1. Wrong API - API hitpoint can be wrong
+2. Incorrect file format - Supports only pdf
+3. Corrupt pdf - PDF files can be corrupted
+4. Invalid data - The data could be invalid
+5. Wrong payload - The payload can be wrong

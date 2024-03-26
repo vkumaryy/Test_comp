@@ -1,0 +1,58 @@
+import json
+import subprocess
+
+def test_api(url, payload):
+    try:
+        # Convert payload to JSON string
+        payload_json = json.dumps(payload)
+        
+        # Use subprocess to call httpie and make the POST request
+        result = subprocess.run(['http', 'POST', url, 'Content-Type:application/json'], input=payload_json, capture_output=True, text=True, check=True)
+        
+        print("Response:")
+        print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print("Error occurred while making the API request:")
+        print(f"Return code: {e.returncode}")
+        print(f"Output: {e.output}")
+    except subprocess.TimeoutExpired as e:
+        print("Timeout occurred while making the API request:")
+        print(e)
+    except Exception as e:
+        print("An unexpected error occurred:")
+        print(e)
+
+if __name__ == "__main__":
+    # Test scenarios
+    scenarios = [
+        {
+            "name": "Wrong API Hitpoint",
+            "url": "http://wrong-api-url.com",
+            "payload": {"url": "https://igtstore.blob.core.windows.net/igtcontainer/temp/MI-B589618.pdf"}
+        },
+        {
+            "name": "Incorrect File Format",
+            "url": "http://vm-win10-dev2023.centralindia.cloudapp.azure.com:13000/api/v1/process-document",
+            "payload": {"url": "https://igtstore.blob.core.windows.net/igtcontainer/temp/incorrect-file-format.txt"}
+        },
+        {
+            "name": "Corrupt PDF",
+            "url": "http://vm-win10-dev2023.centralindia.cloudapp.azure.com:13000/api/v1/process-document",
+            "payload": {"url": "https://igtstore.blob.core.windows.net/igtcontainer/temp/corrupt-file.pdf"}
+        },
+        {
+            "name": "Invalid Data",
+            "url": "http://vm-win10-dev2023.centralindia.cloudapp.azure.com:13000/api/v1/process-document",
+            "payload": {"invalid_field": "value"}
+        },
+        {
+            "name": "Wrong Payload",
+            "url": "http://vm-win10-dev2023.centralindia.cloudapp.azure.com:13000/api/v1/process-document",
+            "payload": {"invalid_key": "value"}
+        }
+    ]
+
+    for scenario in scenarios:
+        print(f"Scenario: {scenario['name']}")
+        test_api(scenario['url'], scenario['payload'])
+        print("\n")
