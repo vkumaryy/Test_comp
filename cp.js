@@ -1,10 +1,14 @@
 const fs = require('fs');
-const { PDFDocument } = require('pdf-lib');
+const PDFParser = require('pdf-parse');
 
 async function isPDFCorrupted(filePath) {
     try {
-        const pdfBytes = await fs.promises.readFile(filePath);
-        await PDFDocument.load(pdfBytes);
+        const dataBuffer = fs.readFileSync(filePath);
+        const pdfData = await PDFParser(dataBuffer);
+        // Check if the parsing was successful and there are no errors
+        if (!pdfData.numpages || pdfData.numpages === 0 || pdfData.text === undefined) {
+            return true; // PDF is corrupted
+        }
         return false; // PDF is not corrupted
     } catch (error) {
         return true; // PDF is corrupted
