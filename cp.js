@@ -5,11 +5,13 @@ async function isPDFCorrupted(filePath) {
     try {
         const dataBuffer = fs.readFileSync(filePath);
         const pdfData = await PDFParser(dataBuffer);
-        // Check if the parsing was successful and there are no errors
-        if (!pdfData.numpages || pdfData.numpages === 0 || pdfData.text === undefined) {
+        
+        // Check if the parsed PDF data contains necessary properties
+        if (pdfData && pdfData.text) {
+            return false; // PDF is not corrupted
+        } else {
             return true; // PDF is corrupted
         }
-        return false; // PDF is not corrupted
     } catch (error) {
         return true; // PDF is corrupted
     }
