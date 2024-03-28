@@ -2,7 +2,7 @@ const fs = require('fs');
 const { performance } = require('perf_hooks');
 const pdfParse = require('pdf-parse');
 
-async function checkPDF(file) {
+async function validateAndReadPDFMetadata(file) {
     const t0 = performance.now();
     try {
         const fileExtension = file.split('.').pop();
@@ -23,4 +23,4 @@ async function checkPDF(file) {
 
 // Example usage:
 const file = 'example_file'; // Path to your file
-checkPDF(file);
+validateAndReadPDFMetadata(file);
