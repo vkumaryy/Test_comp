@@ -5,6 +5,11 @@ const pdfParse = require('pdf-parse');
 async function checkPDF(file) {
     const t0 = performance.now();
     try {
+        const fileExtension = file.split('.').pop();
+        if (fileExtension === file) {
+            console.log("Please put extension in this file.");
+            return;
+        }
         const dataBuffer = fs.readFileSync(file);
         const { numpages, info } = await pdfParse(dataBuffer);
         const t1 = performance.now();
@@ -17,5 +22,5 @@ async function checkPDF(file) {
 }
 
 // Example usage:
-const file = 'example_file'; // Path to your PDF file
+const file = 'example_file'; // Path to your file
 checkPDF(file);
