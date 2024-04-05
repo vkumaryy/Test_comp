@@ -127,3 +127,48 @@ if invoice_data:
 else:
   print("Failed to extract invoice data from PDF.")
 
+
+
+import PyPDF2
+
+def extract_text_from_pdf(file_path):
+  """
+  Extracts all text from the first page of a PDF using PyPDF2.
+
+  Args:
+      file_path: The path to the PDF file.
+
+  Returns:
+      A string containing the extracted text or None if there's an error.
+  """
+
+  try:
+    # Open the PDF with PyPDF2
+    pdf_file = open(file_path, 'rb')
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
+
+    # Extract text from the first page
+    page = pdf_reader.getPage(0)
+    text = page.extract_text()
+
+    # Close the PDF file
+    pdf_file.close()
+
+    return text
+
+  except Exception as e:
+    print(f"Error processing PDF: {e}")
+    return None
+
+# Replace 'path/to/your/file.pdf' with the actual path to your PDF
+file_path = 'path/to/your/file.pdf'
+
+# Extract text from the PDF
+text = extract_text_from_pdf(file_path)
+
+if text:
+  print(text)
+else:
+  print("Failed to extract text from PDF.")
+
+
