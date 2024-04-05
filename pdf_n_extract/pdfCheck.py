@@ -36,9 +36,14 @@ if __name__ == "__main__":
 
 import PyPDF2
 import json
+import os
 
 def extract_data_from_pdf(pdf_path):
     try:
+        # Check if the file exists
+        if not os.path.isfile(pdf_path):
+            return json.dumps({"error": "File not found."})
+        
         # Open the PDF file
         with open(pdf_path, 'rb') as file:
             # Create a PDF reader object
