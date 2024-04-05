@@ -1,37 +1,32 @@
-# pip install fitz
-
-import fitz  # PyMuPDF library for working with PDFs
+import PyPDF2
 import json
 
-def extract_all_text_and_metadata(file_path):
+def extract_all_text_from_page(file_path, page_num=0):
   """
-  This function attempts to open a PDF file and extract all text data 
-  and metadata from the first page.
+  This function extracts all text content from a specific page of a PDF using PyPDF2.
 
   Args:
       file_path: The path to the PDF file.
+      page_num (optional): The page number to extract text from (defaults to 0).
 
   Returns:
-      A dictionary containing extracted text and metadata or None if there's an error.
+      A string containing the extracted text or None if there's an error.
   """
   try:
-    # Open the PDF with PyMuPDF
-    doc = fitz.open(file_path)
+    # Open the PDF with PyPDF2
+    pdf_file = open(file_path, 'rb')
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
 
-    # Get the first page
-    page = doc.loadPage(0)
+    # Get the specified page
+    page = pdf_reader.pages[page_num]
 
-    # Extract text from the page
-    text = page.get_text("text")
+    # Extract text from the page using a text extractor (may require installation)
+    text = page.extract_text()  # Might require installing a text extractor like 'textract'
 
-    # Extract metadata from document info
-    metadata = doc.metadata
+    # Close the PDF file
+    pdf_file.close()
 
-    # Combine text and metadata into a single dictionary
-    all_data = {"text": text, "metadata": metadata}
-
-    # Return the extracted data
-    return all_data
+    return text
 
   except Exception as e:
     print(f"Error processing PDF: {e}")
@@ -40,10 +35,12 @@ def extract_all_text_and_metadata(file_path):
 # Replace 'path/to/your/file.pdf' with the actual path to your PDF
 file_path = 'path/to/your/file.pdf'
 
-# Extract data and convert to JSON (if successful)
-all_data = extract_all_text_and_metadata(file_path)
-if all_data:
-  json_data = json.dumps(all_data)
+# Extract text from the first page
+text_data = extract_all_text_from_page(file_path)
+
+# Convert text data to JSON (if successful)
+if text_data:
+  json_data = json.dumps({"text": text_data})
   print(json_data)
 else:
-  print("Failed to extract data from PDF.")
+  print("Failed to extract text from PDF.")
