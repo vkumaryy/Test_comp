@@ -34,8 +34,7 @@ if __name__ == "__main__":
     main()
 
 
-import PyPDF2
-import json
+import pypdf
 import os
 
 def extract_data_from_pdf(pdf_path):
@@ -47,7 +46,7 @@ def extract_data_from_pdf(pdf_path):
         # Open the PDF file
         with open(pdf_path, 'rb') as file:
             # Create a PDF reader object
-            reader = PyPDF2.PdfFileReader(file)
+            reader = pypdf.PdfFileReader(file)
             
             # Check if the PDF is valid
             if reader.isEncrypted:
