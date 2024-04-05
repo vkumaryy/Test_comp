@@ -1,174 +1,71 @@
-import PyPDF2
+import PyPDF2  # For text extraction
+import re  # Regular expressions for parsing text
+import textract  # Additional text extractor for enhanced capabilities
 import json
 
-def extract_all_text_from_page(file_path, page_num=0):
+def extract_structured_data_pyPDF2(file_path):
   """
-  This function extracts all text content from a specific page of a PDF using PyPDF2.
+  Extracts text (using PyPDF2 and textract if needed) and parses key data points from the first page of a PDF invoice using regular expressions.
 
   Args:
       file_path: The path to the PDF file.
-      page_num (optional): The page number to extract text from (defaults to 0).
 
   Returns:
-      A string containing the extracted text or None if there's an error.
+      A dictionary containing extracted data or None if there's an error.
   """
+
   try:
     # Open the PDF with PyPDF2
     pdf_file = open(file_path, 'rb')
     pdf_reader = PyPDF2.PdfReader(pdf_file)
-
-    # Get the specified page
-    page = pdf_reader.pages[page_num]
-
-    # Extract text from the page using a text extractor (may require installation)
-    text = page.extract_text()  # Might require installing a text extractor like 'textract'
-
-    # Close the PDF file
-    pdf_file.close()
-
-    return text
-
-  except Exception as e:
-    print(f"Error processing PDF: {e}")
-    return None
-
-# Replace 'path/to/your/file.pdf' with the actual path to your PDF
-file_path = 'path/to/your/file.pdf'
-
-# Extract text from the first page
-text_data = extract_all_text_from_page(file_path)
-
-# Convert text data to JSON (if successful)
-if text_data:
-  json_data = json.dumps({"text": text_data})
-  print(json_data)
-else:
-  print("Failed to extract text from PDF.")
-
-
-
-import fitz  # PyMuPDF library for working with PDFs
-import re
-import json
-
-def extract_invoice_data_from_page(file_path, page_num=0):
-  """
-  Extracts all identifiable data points from the first page of an invoice PDF using fitz.
-
-  Args:
-      file_path: The path to the PDF file.
-      page_num (optional): The page number to extract data from (defaults to 0).
-
-  Returns:
-      A dictionary containing extracted invoice data or None if there's an error.
-  """
-
-  try:
-    # Open the PDF with PyMuPDF (basic validation)
-    doc = fitz.open(file_path)
-    if not doc.is_pdf:
-      raise ValueError("Invalid PDF file.")
 
     # Get the first page
-    page = doc.loadPage(page_num)
+    page = pdf_reader.pages[0]
 
-    # Extract text from the page and clean (remove unwanted characters)
-    text = page.get_text("text")
-    text = re.sub(r"\n\s*", "\n", text).strip()  # Remove extra newlines and spaces
-
-    # Initialize empty dictionary for invoice data
-    invoice_data = {}
-
-    # Extract data using generic patterns and heuristics (adjust as needed)
-    patterns = {
-        "company_name": r"(?:Company|Supplier|Vendor):(.*?)\n[Original for Recipient]",
-        "company_address": None,  # Extract from company_name block
-        "invoice_number": r"(?:Invoice|Bill) No :(\w+)",
-        "date": r"(?:Date|Issue Date) : (\d{2} [A-Z][a-z]{2} \d{4})|(?:Date) : (\d{2} [A-Z][a-z]{2} \d{2})",  # Handle different date formats
-        "recipient_name": r"(?:To|Bill To|Recipient):(.*?)\n[PLACE OF SUPPLY]",
-        "recipient_address": None,  # Extract from recipient_name block
-        "recipient_gstin": r"GSTIN: (\w+)",
-        # ... Add more patterns for other data points ...
-    }
-
-    for key, pattern in patterns.items():
-      if pattern:
-        match = re.search(pattern, text, re.DOTALL)
-        invoice_data[key] = match.group(1).strip() if match else None
-
-    # Extract company address and recipient address (heuristics)
-    if invoice_data.get("company_name"):
-      company_info = invoice_data["company_name"].split("\n")
-      invoice_data["company_address"] = "\n".join(company_info[1:])
-    if invoice_data.get("recipient_name"):
-      recipient_info = invoice_data["recipient_name"].split("\n")
-      invoice_data["recipient_address"] = "\n".join(recipient_info[1:])
-
-    # Extract items/services (assuming a table structure if possible)
-    # ... (code to extract items table data, similar to previous attempts) ...
-
-    # Return extracted invoice data
-    return invoice_data
-
-  except Exception as e:
-    print(f"Error processing PDF: {e}")
-    return None
-
-# Replace 'path/to/your/file.pdf' with the actual path to your PDF
-file_path = 'path/to/your/file.pdf'
-
-# Extract invoice data from the first page
-invoice_data = extract_invoice_data_from_page(file_path)
-
-# Convert invoice data to JSON (if successful)
-if invoice_data:
-  json_data = json.dumps(invoice_data)
-  print(json_data)
-else:
-  print("Failed to extract invoice data from PDF.")
-
-
-
-import PyPDF2
-
-def extract_text_from_pdf(file_path):
-  """
-  Extracts all text from the first page of a PDF using PyPDF2.
-
-  Args:
-      file_path: The path to the PDF file.
-
-  Returns:
-      A string containing the extracted text or None if there's an error.
-  """
-
-  try:
-    # Open the PDF with PyPDF2
-    pdf_file = open(file_path, 'rb')
-    pdf_reader = PyPDF2.PdfReader(pdf_file)
-
-    # Extract text from the first page
-    page = pdf_reader.getPage(0)
-    text = page.extract_text()
+    # Extract text from the page, leveraging textract if PyPDF2 fails
+    try:
+      text = page.extract_text()
+    except:
+      text = textract.process(file_path).decode('utf-8')  # Use textract for wider compatibility
 
     # Close the PDF file
     pdf_file.close()
 
-    return text
+    # Initialize empty dictionary for extracted data
+    extracted_data = {}
+
+    # Vendor Name (assuming it's in the header)
+    vendor_name_match = re.search(r"^(.*?)\n", text, re.DOTALL | re.MULTILINE)
+    if vendor_name_match:
+      extracted_data["vendor_name"] = vendor_name_match.group(1).strip()
+
+    # Total Amount (assuming it's at the bottom)
+    total_amount_match = re.search(r"(?:TOTAL|GRAND TOTAL)[\s:]*([\d.]+)", text, re.DOTALL | re.MULTILINE)
+    if total_amount_match:
+      extracted_data["total_amount"] = float(total_amount_match.group(1).strip())
+
+    # Name (heuristic approach, might need adjustments based on your invoice format)
+    name_match = re.search(r"[Bb]illed To|To: (.*?)\n", text, re.DOTALL | re.MULTILINE)
+    if name_match:
+      extracted_data["name"] = name_match.group(1).strip()
+    else:
+      # Alternative heuristic (can be further improved)
+      name_match = re.search(r"([A-Z][a-z]+\s[A-Z][a-z]+)", text)
+      if name_match:
+        extracted_data["name"] = name_match.group(0).strip()
+
+    # Return the extracted data
+    return extracted_data
 
   except Exception as e:
     print(f"Error processing PDF: {e}")
     return None
 
-# Replace 'path/to/your/file.pdf' with the actual path to your PDF
+# Replace 'path/to/your/file.pdf' with the actual path
 file_path = 'path/to/your/file.pdf'
+extracted_data = extract_structured_data_pyPDF2(file_path)
 
-# Extract text from the PDF
-text = extract_text_from_pdf(file_path)
-
-if text:
-  print(text)
+if extracted_data:
+  print(json.dumps(extracted_data))
 else:
-  print("Failed to extract text from PDF.")
-
-
+  print("Failed to extract data from PDF.")
