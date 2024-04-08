@@ -68,6 +68,6 @@ def extract_structured_data_pyPDF2(file_path):
 
 # Call the function with the file path to your PDF file
 # Replace 'path/to/your/file.pdf' with the actual path to your PDF file
-extracted_data = extract_structured_data_pyPDF2('path/to/your/file.pdf')
+extracted_data = extract_structured_data_pyPDF2('/home/vikash/Downloads/pdfcj.pdf')
 if extracted_data:
     print(json.dumps(extracted_data, indent=4))
