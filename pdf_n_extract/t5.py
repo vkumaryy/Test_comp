@@ -43,7 +43,7 @@ def convert_to_json(text):
     return json.dumps(data, indent=4)
 
 if __name__ == "__main__":
-    pdf_path = "pdf_to_read.pdf"
+    pdf_path = "/home/vikash/Downloads/pdfcj.pdf"
     resume_text = extract_text_from_pdf(pdf_path)
     json_data = convert_to_json(resume_text)
     print(resume_text)
