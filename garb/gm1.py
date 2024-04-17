@@ -35,7 +35,7 @@ def extract_clean_text(pdf_path):
         return ""
 
 if __name__ == "__main__":
-    pdf_path = "/home/vikash/Downloads/pdfcj.pdf"  # Replace with your PDF path
+    pdf_path = "/home/vikash/Downloads/garb.pdf"  # Replace with your PDF path
     clean_text = extract_clean_text(pdf_path)
 
     if clean_text:
