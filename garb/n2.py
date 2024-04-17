@@ -1,0 +1,51 @@
+import PyPDF2
+import json
+import re
+import time
+
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    with open(pdf_path, "rb") as file:
+        reader = PyPDF2.PdfReader(file)
+        num_pages = len(reader.pages)
+        for page_num in range(num_pages):
+            page = reader.pages[page_num]
+            text += page.extract_text()
+
+    text = text.replace(',', '\n')
+    # print(text)
+    
+    cleaned_text = ""
+    lines = text.split('\n')
+    for line in lines:
+        cleaned_line = re.sub(r'^\s+', '', line)
+        if cleaned_line:
+            cleaned_text += cleaned_line + '\n'
+    return cleaned_text.strip()
+
+def convert_to_json(text):
+    lines = text.split('\n')
+    key_value_data = {}
+    numbered_data = {}
+    line_number = 1
+    for line in lines:
+        if ':' in line:
+            key, value = map(str.strip, line.split(':', 1))
+            key_value_data[key] = value
+        else:
+            numbered_data[f'data-{line_number}'] = line.strip()
+            line_number += 1
+    return json.dumps({"key_value_data": key_value_data, "numbered_data": numbered_data}, indent=4)
+
+if __name__ == "__main__":
+    pdf_path = "pdf4.pdf"
+    start_time = time.time()
+    text = extract_text_from_pdf(pdf_path)
+    json_data = convert_to_json(text)
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("Execution Time:", execution_time, "seconds")
+    # Print key-value data
+    parsed_data = json.loads(json_data)
+    print("Key-Value Data:")
+    print(parsed_data["key_value_data"])
